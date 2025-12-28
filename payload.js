@@ -11,12 +11,39 @@ function return_value(value) {
 }
 
 function screenshot() {
-  return new Promise(function (resolve, reject) {
-    html2canvas(document.querySelector("html"), { letterRendering: 1, allowTaint: true, useCORS: true, width: 1024, height: 768}).then(function (canvas) {
-        resolve(return_value(canvas.toDataURL())) // png in dataURL format
-    });
+  return new Promise(async function (resolve) {
+    try {
+      const body = document.body;
+      const html = document.documentElement;
+
+      const height = Math.max(
+        body.scrollHeight,
+        body.offsetHeight,
+        html.clientHeight,
+        html.scrollHeight,
+        html.offsetHeight
+      );
+
+      // Force scroll to bottom to trigger lazy content
+      window.scrollTo(0, height);
+      await new Promise(r => setTimeout(r, 1500));
+
+      const canvas = await html2canvas(document.documentElement, {
+        useCORS: true,
+        allowTaint: true,
+        windowWidth: document.documentElement.scrollWidth,
+        windowHeight: height,
+        scrollX: 0,
+        scrollY: 0
+      });
+
+      resolve(canvas.toDataURL("image/png"));
+    } catch (e) {
+      resolve("");
+    }
   });
 }
+
 
 
 function collect_data() {
